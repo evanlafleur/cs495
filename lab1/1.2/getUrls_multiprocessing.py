@@ -1,4 +1,5 @@
-import requests, time
+import requests, time, multiprocessing
+import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
 
 def time_decorator(func):
@@ -43,7 +44,41 @@ def getSequential(urls):
         titles.append(getUrlTitle(u))
     return(titles)
 
-urls = ['https://pdx.edu', 'https://oregonctf.org']
-elapsedSequential = getSequential(urls)
 
-print(f'{elapsedSequential:0.2f} secs')
+@time_decorator
+def getMulti(urls, num_processes):
+    """
+    Given a list of URLs, retrieve the title for each one using a single synchronous process
+    :param urls: List of URLs to retrieve
+    :type urls: list of str
+    :param num_processes: Number of processes to use
+    :type num_processes: int
+    :return: list of str
+    :rtype: list of str
+    """
+    p = multiprocessing.Pool(num_processes)
+    titles = p.map(getUrlTitle, urls)
+    p.close()
+    return(titles)
+
+
+urls = ['https://pdx.edu', 'https://oregonctf.org', 'https://youtube.com', 'https://github.com', 'https://target.com', 'https://linkedin.com']
+
+resp = requests.get('https://thefengs.com/wuchang/courses/cs495/urls.txt')
+urls = resp.text.split('\n')[:39]
+
+
+if __name__ == '__main__':
+  concurrencies = [40, 30, 20, 10, 5, 2]
+  elapsed = []
+
+  for c in concurrencies:
+      fetch_time = getMulti(urls,c)
+      elapsed.append(fetch_time)
+      print(f'{c} {fetch_time:0.2f}') 
+
+  plt.scatter(concurrencies, elapsed)
+  plt.title("elafleur")
+  plt.xlabel("Number of Processes")
+  plt.ylabel("Retrieval Time")
+  plt.show()
