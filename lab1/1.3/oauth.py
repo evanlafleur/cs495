@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-site = 'ac561fe01ef34688c0ef455e003200e7.web-security-academy.net/'
+site = 'ac1d1f581f5d755cc07b68e3003d003b.web-security-academy.net'
 
 s = requests.Session()
 login_url = f'https://{site}/social-login'
@@ -52,6 +52,7 @@ me_headers = {
 }
 resp = s.get(me_url, headers=me_headers)
 print(f'/me gets user information: {resp.text}')
+
 
 authenticate_url = f'https://{site}/authenticate'
 authenticate_data = {
