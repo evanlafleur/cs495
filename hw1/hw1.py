@@ -82,12 +82,11 @@ def auth_check(auth_code, event):
 
 
 #https://www.analyticsvidhya.com/blog/2021/04/a-beginners-guide-to-multi-processing-in-python/
-
 @time_decorator
 def run_test():
     multiplier = 4
     cpu_count = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(100)
+    pool = multiprocessing.Pool(cpu_count*multiplier)
 
     procManager = multiprocessing.Manager()
     event = procManager.Event()
@@ -102,6 +101,7 @@ def run_test():
 
     event.wait()
     p.terminate()
+     
 
     
 
