@@ -68,7 +68,7 @@ def auth_check(auth_code, event):
             event.set()
         
         if resp.status_code == 200:
-            print(f'== {auth_code} || {resp.status_code} ==')
+            print(f'== {auth_code} || false ==')
             pass
         else:
             print(f'== {auth_code} || {resp.status_code} ==')
@@ -78,13 +78,13 @@ def auth_check(auth_code, event):
 
 @time_decorator
 def run_test():
-    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    multiplier = 3
+    pool = multiprocessing.Pool(multiprocessing.cpu_count()*multiplier)
 
     procManager = multiprocessing.Manager()
     event = procManager.Event()
 
     auth_code = []
-    
     for i in range(0, 10000):
         auth_code.append('%04d' % i)
 
