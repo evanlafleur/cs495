@@ -1,2 +1,6 @@
 requests
 bs4
+sys
+time
+urllib.parse
+string
