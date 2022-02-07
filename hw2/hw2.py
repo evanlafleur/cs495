@@ -53,6 +53,7 @@ while True:
 print(f"Password length is {num}")
 print(f"Time elapsed is {time.perf_counter()-begin_time}")
 
+
 '''
 Begins Linear search to determine the password for the program
 First for loop collects the first character of the password
@@ -81,3 +82,4 @@ for i in range(num-1):
             print(f"Password starts with {try_password[0]+characters[i]}")
             try_password[0] = try_password[0]+characters[i]
             break
+            
