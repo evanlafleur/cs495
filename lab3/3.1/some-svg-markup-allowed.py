@@ -63,7 +63,7 @@ events = ['onafterprint','onafterscriptexecute','onanimationcancel',
 
 allowed_events = []
 
-site = 'acf71fbe1ffbae65c0bc0b8c003200b3.web-security-academy.net'
+site = 'ac871fd71ffbbaeec0f9671f002a0058.web-security-academy.net'
 
 # tag = 'script'
 # search_url = f'https://{site}/?search=<{tag}>'
